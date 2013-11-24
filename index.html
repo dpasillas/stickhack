@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>hackathon 2013</title>
+		<script type="text/javascript" src="js/paper.js"></script>
+		<!--<script src="js/event_handler.js" type="text/paperscript" canvas="myCanvas"></script>-->
+		<script type="text/javascript" src="js/sprite.js"></script>
+
+		<script src="js/profile.js"></script>
+		<script src="js/date.js"></script>
+		<script src="js/level.js"></script>
+		<script src="js/map.js"></script>
+		<!--<script type="text/javascript">-->
+
+			<!--var time = new TimeLapse();
+			var data = new Profile(60);
+			data.addtrial(time.startm);
+			setTimeout(
+				function(){
+					var tdiff=time.lapse(); console.log("tdiff:"+tdiff); data.addtrial(time.stopm); console.log(data.getTrial(0)); console.log(data.getTrial(1));
+				},
+				3000
+			);-->
+
+		<!--</script>-->
+		<style type="text/css">
+		body {
+			margin: 0;
+			padding: 0;
+		}
+		</style>
+		<script type="text/paperscript" canvas="myCanvas">
+			
+			paper.install(window);
+			// Get a reference to the canvas object
+			var canvas = document.getElementById('myCanvas');
+			// Create an empty project and a view for the canvas:
+			paper.setup(canvas);
+			//Activates PaperScope, all newly created items will be placed in its active project
+			paper.activate();
+
+			/* some variables used in game, mostly for event handling */
+			var time = new TimeLapse();
+			var newPos = new Point(0,0);
+			var oPos = new Point(0,0);
+			var cnt = 0;
+			var prev = "";
+			var jump = 0;
+			var jump_val = 30;
+
+
+			/* event handling code */
+			function onMouseDown(event) {
+				console.log('You pressed the mouse!');
+			}
+			function onMouseDown(event) {
+				console.log('You pressed the mouse!');
+			}
+
+			function onMouseDrag(event) {
+				console.log('You dragged the mouse!');
+			}
+
+			function onMouseUp(event) {
+				console.log('You released the mouse!');
+			}
+
+			function onKeyDown(event) {
+				if ( prev == event.key ) {
+					cnt = ( cnt < 25 ) ? cnt + 1 : cnt;
+				}
+				else {
+					cnt = 0;
+				}
+
+				if ( event.key == "right") {
+					newPos = new Point(5+cnt,0);
+				}
+				if ( event.key == "up") {
+					newPos = new Point(0,-5-cnt);
+				}
+				if ( event.key == "left") {
+					newPos = new Point(-5-cnt,0);
+				}
+				if ( event.key == "down") {
+					newPos = new Point(0,5+cnt);
+				}
+				if ( event.key == "space" ) {
+					if (jump == 0) {
+						time = new TimeLapse();
+						oPos.x = hero.getPoint().x;
+						oPos.y = hero.getPoint().y;
+						newPos = new Point(0,jump_val*-1);
+						jump = 1;
+					}
+				}
+
+				prev = event.key;
+			}
+
+			/* SCENE BOUNDARY BOX or GAME MAP BOX */
+			var map_box = new Path.Rectangle({
+				point: [0,0], // [75,75], view.center
+				width: window.innerWidth, 
+				height: window.innerHeight,
+				strokeColor: 'black',
+				fillColor: 'black'
+			});
+			map_box.opacity = 0;
+			map_box.strokeWidth = 0;
+
+			/* HERO PATH OBJECT or CHARACTER */
+			var path = new Path.Rectangle({
+				point: [100,100], // [75,75] or view.center
+				size: [75, 75],
+				strokeColor: 'yellow'
+			});
+
+			// create path object for map background
+			var map_bg = new Path.Rectangle({
+				point: [0,0], // [75,75], view.center
+				width: window.innerWidth, 
+				height: window.innerHeight,
+				strokeColor: 'blue',
+				fillColor: 'black'
+			});
+
+			/* setup game structure */
+			var hero = new Sprite(path);
+			var level = new Level(hero);
+
+			// create random creeps
+			for (var i = 0; i < 10; i++) {
+				var center = new Point( Math.floor((Math.random()*800)+1), Math.floor((Math.random()*800)+1) );
+				var tmp = new Path.Circle( center, 30);
+				tmp.fillColor = 'red';
+				// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
+				var creep = new Sprite(tmp, 3, 10, 5, 1, new Point(1,0));
+				level.addToCreeps( creep );
+			}
+
+			// create game map
+			var map = new Map(level,map_box);
+			// set map background to map
+			map.setBg(map_bg);
+
+
+			function onFrame(event) {
+
+				hero.path.rotate(1);
+
+				if ( (jump == 1) && (time.lapse() >= 1000) )
+				{
+					newPos.x = hero.getPoint().x - oPos.x;
+					newPos.y = jump_val;
+
+					jump = 0;
+					oPos = new Point(0,0);
+				}
+				if(newPos.x != 0 && newPos.y != 0) map.update(newPos);
+
+				newPos.x = 0;
+				newPos.y = 0;
+			}
+
+		</script>
+
+	</head>
+	<body>
+		<canvas id="myCanvas" resize></canvas>
+	</body>
+</html>

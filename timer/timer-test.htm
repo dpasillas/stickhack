@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="author" content="Sean K. Friese" />
+<title>TimerControl Test Page</title>
+<script type="text/javascript" src="timer-control.js"></script>
+<script type="text/javascript">
+var test;
+var TestClass = function()
+{
+	this.init=function()
+	{
+		log('Instance of TimerControl created');
+		this.timer = new TimerControl(this);
+	};
+	this.startTimer=function()
+	{
+		log('Starting timer for 10 seconds (10000 milliseconds)');
+		this.timer.start({
+			duration:10000,
+			interval:10,
+			onCompletedCb:this.onCompleted,
+			onIntervalCb:this.onInterval
+		});
+	};
+	this.pauseTimer=function()
+	{
+		log('Pausing timer');
+		this.timer.pause();
+	};
+	this.resumeTimer=function()
+	{
+		log('Resuming timer');
+		this.timer.resume();
+	};
+	this.stopTimer=function()
+	{
+		log('Stopping timer');
+		this.timer.stop();
+	};
+	this.onCompleted=function()
+	{
+		log('Timer fired &quot;onCompleted&quot; callback');
+	};
+	this.onInterval=function(elapsed,remaining)
+	{
+		log('Elapsed: '+this.timer.toReadable(elapsed)+' (ms:'+elapsed+') / Remaining: '+this.timer.toReadable(remaining)+' (ms:'+remaining+')');
+	};
+};
+var run=function()
+{
+	test = new TestClass();
+	test.init();
+};
+
+/*
+* Utility Functions
+*/
+var log=function(msg)
+{
+	$('console').innerHTML += '<p>&gt; '+msg+'</p>';
+	$('console').scrollTop = $('console').scrollHeight;
+};
+var clearConsle=function()
+{
+	$('console').innerHTML = '';
+};
+var $=function(id)
+{
+	return document.getElementById(id);
+};
+window.onload=function()
+{
+	run();
+};
+</script>
+<style type="text/css">
+body{margin:10px;background:#f0f0f0;}
+h1{font-family:verdana,arial,helvetica,geneva;font-size:16px;margin:0 0 10px 0;}
+a,div,p{font-family:verdana,arial,helvetica,geneva;font-size:12px;}
+a,a:hover,a:link,a:visited{color:#3A95C5;text-decoration:none;}
+a:hover{text-decoration:underline;}
+div#container{border:1px solid #ccc;padding:10px;background:#fff;}
+div#header{background:#fff7ea;border:1px solid #f60;padding:5px;}
+div#header h1,div#header div{color:#f60;}
+p{margin:5px;}
+div#header{background:#fff7ea;border:1px solid #f60;padding:5px;}
+div#header h1,div#header div{color:#f60;}
+div#console{background:#333;color:#ccc;border:4px solid #666;height:300px;overflow:auto;margin:5px;font-family:consolas,"courier new",courier,fixed;}
+#tests,#copy{text-align:right;}
+#tests{margin:10px 0 10px 0;padding:5px;border:1px solid #3A95C5;background:#EBF4FA;color:#97C6E6;}
+a,a:hover,a:link,a:visited{color:#3A95C5;text-decoration:none;}
+</style>
+</head>
+<body>
+<div id="container">
+	<div id="header">
+		<h1>TimerControl</h1>
+		<div id="desc">Javascript-based timer control class example</div>
+	</div>
+	<div id="tests">
+		Run Tests [ 
+		<a href="#" onclick="test.startTimer();return false;">Start Timer</a> | 
+		<a href="#" onclick="test.pauseTimer();return false;">Pause Timer</a> | 
+		<a href="#" onclick="test.resumeTimer();return false;">Resume Timer</a> | 
+		<a href="#" onclick="test.stopTimer();return false;">Stop Timer</a> | 
+		<a href="#" onclick="clearConsle();return false;">Clear Console</a> ]
+	</div>
+	<div id="console"></div>
+	<div id="copy">https://github.com/skfriese/timer-control</div>
+</div>
+</body>
+</html>
