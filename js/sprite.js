@@ -11,24 +11,29 @@ behavior: a vector indicating the movement of the sprite
 */
 
 // class constructor
-function Sprite(path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector)
+function Sprite(path_obj,durability_val,stamina_val,speed_val, sprite_id, behavior_vector)
 {
 	this.path = (path_obj == "undefined") ? null: path_obj;
 	this.durability = (durability_val == "undefined") ? null: durability_val;
 	this.stamina = (stamina_val == "undefined") ? null: stamina_val;
 	this.speed = (speed_val == "undefined") ? null: speed_val;
 	this.sid = (sprite_id == "undefined") ? null: sprite_id;
-	this.behavior = ( bahavior_vector == "undefined" ) ? null : bahavior_vector;
+	this.behavior = ( behavior_vector == "undefined" ) ? null : behavior_vector;
+	this.life = this.durability;
+
+	this.collidable = true;
+	this.active = true;
 }
 
 // wipeout
 Sprite.prototype.clear = function()
 {
-	this.path = null;
+	//this.path;
 	this.durability = null;
 	this.stamina = null;
 	this.speed = null;
 	this.sid = -1;
+	this.life = this.durability;
 	this.behavior = new Point(0,0);
 };
 
@@ -59,5 +64,20 @@ Sprite.prototype.collision = function(other)
 	// true if collided, false otherwise
 	return this.path.bounds.intersects(other.path.bounds);
 };
+
+// move sprite
+/*Sprite.prototype.move = function()
+{
+	this.path.position.x += this.speed * this.behavior.x;
+	this.path.position.y += this.speed * this.behavior.y;
+	console.log("sprite pos:"+this.path.position.x +" "+this.path.position.y);
+};*/
+
+
+
+
+
+
+
 
 

@@ -10,6 +10,7 @@
 		<script src="js/date.js"></script>
 		<script src="js/level.js"></script>
 		<script src="js/map.js"></script>
+		<script src="js/animation.js"></script>
 		<!--<script type="text/javascript">-->
 
 			<!--var time = new TimeLapse();
@@ -39,6 +40,29 @@
 			//Activates PaperScope, all newly created items will be placed in its active project
 			paper.activate();
 
+			Point.prototype.getName = function() { return "Point"; };
+			Color.prototype.getName = function() { return "Color"; };
+
+			/*function createRandomCreeps(n)
+			{
+				// create random creeps
+				for (var i = 0; i < n; i++) {
+					var radius = Math.floor((Math.random()*25)+1);
+					var center = new Point( Math.floor((Math.random()*800)+1), Math.floor((Math.random()*800)+1) );
+					var tmp = new Path.Circle( center, radius);
+					tmp.fillColor = 'red';
+					// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
+					var plusOrMinus1 = Math.random() < 0.5 ? -1 : 1;
+					var plusOrMinus2 = Math.random() < 0.5 ? -1 : 1;
+					var a = Math.floor((Math.random()*1)+1)*plusOrMinus1;
+					var b = Math.floor((Math.random()*1)+1)*plusOrMinus2;
+					var behavior = new Point(a,b);
+					var creep = new Sprite(tmp, 3, 10, Math.floor((Math.random()*5)+1), 1, behavior);
+					level.addToCreeps( creep );
+				}
+			}*/
+
+
 			/* some variables used in game, mostly for event handling */
 			var time = new TimeLapse();
 			var newPos = new Point(0,0);
@@ -46,58 +70,11 @@
 			var cnt = 0;
 			var prev = "";
 			var jump = 0;
-			var jump_val = 30;
+			var jump_val = 90;
+			var side = 0;
+			var sideAni = null;
 
-
-			/* event handling code */
-			function onMouseDown(event) {
-				console.log('You pressed the mouse!');
-			}
-			function onMouseDown(event) {
-				console.log('You pressed the mouse!');
-			}
-
-			function onMouseDrag(event) {
-				console.log('You dragged the mouse!');
-			}
-
-			function onMouseUp(event) {
-				console.log('You released the mouse!');
-			}
-
-			function onKeyDown(event) {
-				if ( prev == event.key ) {
-					cnt = ( cnt < 25 ) ? cnt + 1 : cnt;
-				}
-				else {
-					cnt = 0;
-				}
-
-				if ( event.key == "right") {
-					newPos = new Point(5+cnt,0);
-				}
-				if ( event.key == "up") {
-					newPos = new Point(0,-5-cnt);
-				}
-				if ( event.key == "left") {
-					newPos = new Point(-5-cnt,0);
-				}
-				if ( event.key == "down") {
-					newPos = new Point(0,5+cnt);
-				}
-				if ( event.key == "space" ) {
-					if (jump == 0) {
-						time = new TimeLapse();
-						oPos.x = hero.getPoint().x;
-						oPos.y = hero.getPoint().y;
-						newPos = new Point(0,jump_val*-1);
-						jump = 1;
-					}
-				}
-
-				prev = event.key;
-			}
-
+///////////////////////////////////////////////////////////
 			/* SCENE BOUNDARY BOX or GAME MAP BOX */
 			var map_box = new Path.Rectangle({
 				point: [0,0], // [75,75], view.center
@@ -111,53 +88,258 @@
 
 			/* HERO PATH OBJECT or CHARACTER */
 			var path = new Path.Rectangle({
-				point: [100,100], // [75,75] or view.center
+				point: new Point(200,window.innerHeight-250), // [75,75] or view.center
 				size: [75, 75],
-				strokeColor: 'yellow'
+				strokeColor: 'yellow',
+				fillColor: 'yellow'
 			});
 
+			/*var path = new Path.Circle({
+				center: [200,100],
+				radius: 30,
+				fillColor: 'yellow'
+			});*/
+
 			// create path object for map background
-			var map_bg = new Path.Rectangle({
+			/*var map_bg = new Path.Rectangle({
 				point: [0,0], // [75,75], view.center
 				width: window.innerWidth, 
 				height: window.innerHeight,
 				strokeColor: 'blue',
 				fillColor: 'black'
-			});
+			});*/
+
+			var head = new Path.Circle({center:[200,200],radius:15,strokeWidth:1,strokeColor:'white'});
+			var spine = new Path.Line(new Point(200,200+15),new Point(200,275));
+			spine.strokeColor = 'white';
+			var leg1 = new Path.Line(new Point(200,275),new Point(225,300));
+			leg1.strokeColor = 'white';
+			var leg2 = new Path.Line(new Point(200,275),new Point(175,300));
+			leg2.strokeColor = 'white';
+			var arm1 = new Path.Line(new Point(200,245),new Point(165,225));
+			arm1.strokeColor = 'white';
+			var arm2 = new Path.Line(new Point(200,245),new Point(235,225));
+			arm2.strokeColor = 'white';
+
+
+			var wall1 = new Path.Line(new Point(300,450),new Point(300,600));
+			wall1.strokeColor = 'white';
+			wall1.strokeWidth = 5;
+
+			var man = new Group( head, spine, leg1, leg2, arm1, arm2 );
+			man.position = new Point(200,window.innerHeight - 250);
 
 			/* setup game structure */
-			var hero = new Sprite(path);
+			// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
+			var hero = new Sprite(path);//,5,5,5,1,new Point(1,0));
 			var level = new Level(hero);
 
+			// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
+			var wall_1 = new Sprite(wall1,5,0,1,1,new Point(0,0));
+			//level.addToCreeps(wall_1);
+			
+
 			// create random creeps
-			for (var i = 0; i < 10; i++) {
-				var center = new Point( Math.floor((Math.random()*800)+1), Math.floor((Math.random()*800)+1) );
-				var tmp = new Path.Circle( center, 30);
-				tmp.fillColor = 'red';
-				// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
-				var creep = new Sprite(tmp, 3, 10, 5, 1, new Point(1,0));
-				level.addToCreeps( creep );
-			}
+			level.createRandomCreeps(30);
 
 			// create game map
-			var map = new Map(level,map_box);
+			var map = new Map(level,map_box,sideAni);
 			// set map background to map
-			map.setBg(map_bg);
+			map.setBg(
+				new Path.Rectangle({
+					point: [0,0], // [75,75], view.center
+					width: window.innerWidth, 
+					height: window.innerHeight,
+					strokeColor: 'blue',
+					fillColor: 'black'
+				})
+			);
+
+///////////////////////////////////////////////////////////
+
+			/* event handling code */
+			/*function onMouseDown(event) {
+				console.log('You pressed the mouse!');
+			}
+			function onMouseDown(event) {
+				console.log('You pressed the mouse!');
+			}
+
+			function onMouseDrag(event) {
+				console.log('You dragged the mouse!');
+			}
+
+			function onMouseUp(event) {
+				console.log('You released the mouse!');
+			}*/
+			function onKeyUp(event)
+			{
+				if(event.key == "up") {
+
+				}
+				else {}
+
+				if(event.key == "down") {
+
+				}
+				else {}
+
+				if(event.key == "left") {
+					if(side < 0){
+						side = 0;
+						sideAni.stop();
+					}
+				}
+				else {}
+
+				if(event.key == "right"){
+					if(side > 0){
+						side = 0;
+						sideAni.stop();
+					}
+				}
+				else {}
+
+			}
 
 
+			function onKeyDown(event) {
+				if ( prev == event.key ) {
+					cnt = ( cnt < 25 ) ? cnt + 1 : cnt;
+					
+				}
+				else {
+					cnt = 0;
+				}
+
+				if ( event.key == "right") {
+					newPos = new Point(5+cnt,0);
+					//map.level.hero.behavior.x = 1;
+					if(side == 0 || sideAni.running == false) {
+						var delta1 = (75+15*115);//(5*cnt+15*115);
+						//var delta2 = 2;
+						var myHero = map.level.hero;
+						sideAni = new Animation();
+						map.animation = sideAni;
+						sideAni.write = function(val){ myHero.path.position.x = val; };
+						sideAni.setStartValue(myHero.path.position.x);
+						sideAni.setEndValue(myHero.path.position.x + delta1);
+						sideAni.duration = 2*60;
+						sideAni.easingFunc = easeInQuad;
+						sideAni.finish = function func(){
+							sideAni = new Animation();
+							map.animation = sideAni;
+							sideAni.write = function(val){ myHero.path.position.x = val; };
+							sideAni.setStartValue(myHero.path.position.x);
+							sideAni.setEndValue(myHero.path.position.x + delta1);
+							sideAni.duration = 2*60;
+							sideAni.finish = func;
+							sideAni.start();
+						};
+						sideAni.start();
+
+						side = 1;
+					}
+				}
+				else{
+					
+				}
+				if ( event.key == "space") {
+					//newPos = new Point(0,-5-cnt);
+					var ctr = new Point(map.level.hero.path.bounds.right,map.level.hero.path.position.y);
+					var proj = new Path.Circle({center:ctr,radius:5,strokeWidth:1,strokeColor:'green', fillColor:'green'});
+
+					// path_obj,durability_val,stamina_val,speed_val, sprite_id, bahavior_vector
+					var a = new Sprite(proj,3,0,3,3,new Point(1,0));
+					map.level.addToProjectiles(a);
+
+					var ani = new Animation();
+					ani.write = function(val){ proj.position = val;};
+					ani.setStartValue(ctr);
+					ani.setEndValue(ctr + [60 * a.speed * a.behavior.x, 60 * a.speed * a.behavior.y]);
+					ani.duration = 60;
+					ani.finish = function f(){
+						var ani = new Animation();
+						ani.write = function(val){ proj.position = val;};
+						ani.setStartValue(proj.position);
+						ani.setEndValue(proj.position + [60 * a.speed * a.behavior.x, 60 * a.speed * a.behavior.y]);
+						ani.duration = 60;
+						ani.finish = f;
+						ani.start();
+					}
+					ani.start();
+
+				}
+				if ( event.key == "left") {
+					newPos = new Point(-5-cnt,0);
+					//map.level.hero.behavior.x = -1;
+					if(side == 0 || sideAni.running == false)
+					{
+						var delta1 = -(75+15*115);//(75+15*115); (5*cnt+15*115)
+						var delta2 = -2;
+						var myHero = map.level.hero;
+						sideAni = new Animation();
+						map.animation = sideAni;
+						sideAni.write = function(val){myHero.path.position.x = val;};
+						sideAni.setStartValue(myHero.path.position.x);
+						sideAni.setEndValue(myHero.path.position.x + delta1);
+						sideAni.duration = 2*60;
+						sideAni.easingFunc = easeInQuad;
+						sideAni.finish = function func(){
+							sideAni = new Animation();
+							map.animation = sideAni;
+							sideAni.write = function(val){myHero.path.position.x = val;};
+							sideAni.setStartValue(myHero.path.position.x);
+							sideAni.setEndValue(myHero.path.position.x + delta1);
+							sideAni.duration = 2*60;
+							sideAni.finish = func;
+							sideAni.start();
+						};
+						sideAni.start();
+
+						side = -1;
+					}
+				}
+				if ( event.key == "down") {
+					newPos = new Point(0,5+cnt);
+				}
+				if ( event.key == "up" ) {
+					//map.level.hero.behavior.y = -1;
+					if (jump == 0) {
+						time = new TimeLapse();
+						oPos.x = hero.getPoint().x;
+						oPos.y = hero.getPoint().y;
+						newPos = new Point(0,jump_val*-1);
+						jump = 1;
+					}
+				}
+
+				prev = event.key;
+			}
+
+			var dir = 0;
 			function onFrame(event) {
-
-				hero.path.rotate(1);
-
-				if ( (jump == 1) && (time.lapse() >= 1000) )
+				timeAnimationManager.animate(event.count);
+				if ( (jump == 1) )//&& (time.lapse() >= 1000) )
 				{
 					newPos.x = hero.getPoint().x - oPos.x;
-					newPos.y = jump_val;
+					newPos.y = jump_val*-1;
 
-					jump = 0;
+					jump = 2;
 					oPos = new Point(0,0);
+
+					var ja = new Animation();
+					var myHero = map.level.hero;
+					ja.write = function(val){myHero.path.position.y = val;console.log("animating");};
+					ja.duration = 20;
+					ja.setKeyValue(0, map.level.hero.path.position.y);
+					ja.setKeyValue(1, map.level.hero.path.position.y + newPos.y);
+					ja.easingFunc = function(t){ return -Math.pow(2*t - 1,2)+1;};
+					ja.finish = function(){console.log(jump);jump = 0;console.log(jump);};
+					ja.start();
 				}
 				map.update(newPos);
+				man.position = ( man.position.x < 800) ? man.position + new Point(1,0) : man.position;
 
 				newPos.x = 0;
 				newPos.y = 0;
